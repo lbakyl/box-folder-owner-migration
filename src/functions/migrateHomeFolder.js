@@ -22,7 +22,7 @@ const { migrateExistingFolder } = require('../lib/migrateFolder');
  * }
  *
  * Authenticates as whoever signed in with `node tools/boxLogin.js` (see the
- * README) — this has to be the folder's current owner, since only the
+ * README). This has to be the folder's current owner, since only the
  * owner can hand ownership to someone else. Pass "adminToken" in the body
  * instead to use a short-lived developer token for a quick one-off test.
  */

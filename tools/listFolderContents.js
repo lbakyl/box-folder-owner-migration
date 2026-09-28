@@ -12,7 +12,7 @@
  * department or per A-Z range); a bare id just uses the id as its own label.
  *
  * Output goes to ./output/folder-contents-<date>.csv (git-ignored by
- * default — it will contain real names).
+ * default; it will contain real names).
  */
 const fs = require('fs');
 const path = require('path');

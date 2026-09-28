@@ -16,7 +16,7 @@ async function main() {
 
   for (const email of emails) {
     // getUsers takes its params directly, unlike getFolderById/getUserById
-    // which wrap them in { queryParams: {...} }. Easy to get wrong — if you
+    // which wrap them in { queryParams: {...} }. Easy to get wrong: if you
     // pass { queryParams: { filterTerm, limit } } here instead, Box silently
     // ignores the filter and returns its default unfiltered first page.
     const result = await client.users.getUsers({ filterTerm: email, limit: 5 });

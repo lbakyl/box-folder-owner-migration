@@ -3,7 +3,7 @@
  * folder" currently owned by an admin or service account) to be owned by
  * the real person it belongs to.
  *
- * This never creates a folder or copies any data — Box ownership transfer
+ * This never creates a folder or copies any data. Box ownership transfer
  * is a metadata-only operation regardless of folder size, so a folder in
  * the hundreds of GB transfers exactly as fast as an empty one. The folder
  * stays wherever it currently lives in the tree; only its owner (and
@@ -11,7 +11,7 @@
  *
  * Defaults to a dry run (report only, no changes) so that every existing
  * collaborator beyond the target user gets surfaced and reviewed before
- * anything is removed — some of that access may be legitimate (e.g. a
+ * anything is removed. Some of that access may be legitimate (e.g. a
  * manager who genuinely needs visibility into a direct report's files) and
  * shouldn't be silently stripped. Default behavior once confirmed IS to
  * remove everyone not explicitly kept: the point of this tool is that
@@ -45,8 +45,8 @@ async function migrateExistingFolder(client, folderId, userId, userName, options
   const before = await client.listCollaborations.getFolderCollaborations(folderId);
   // A folder's collaboration list also includes access inherited from parent
   // folders. Such an entry's "item" is the ANCESTOR it was created on.
-  // Upgrading or deleting one changes the whole parent tree — every other
-  // folder under it, not just this one — so only collaborations created
+  // Upgrading or deleting one changes the whole parent tree: every other
+  // folder under it, not just this one. So only collaborations created
   // directly on this exact folder are ever touched. (This is not a
   // hypothetical: mixing these up is the easiest way to accidentally
   // transfer ownership of an entire shared tree instead of one folder.)
@@ -102,7 +102,7 @@ async function migrateExistingFolder(client, folderId, userId, userName, options
   //  2. Even when neither of those blocks anything, leaving the folder
   //     nested means whoever collaborates on the PARENT folder keeps
   //     standing access to it forever, regardless of who now owns the
-  //     child — ownership transfer alone does not sever inherited access.
+  //     child. Ownership transfer alone does not sever inherited access.
   //     If the whole point of migrating is to end standing access from a
   //     shared structure, any inherited access at all means the folder
   //     must move, not just cases that would otherwise fail outright.
@@ -185,7 +185,7 @@ async function migrateExistingFolder(client, folderId, userId, userName, options
   try {
 
   if (alreadyOwner) {
-    logger.log(`User ${userId} already owns folder ${folder.id} — skipping the ownership transfer.`);
+    logger.log(`User ${userId} already owns folder ${folder.id}, skipping the ownership transfer.`);
   } else {
     if (needsMove) {
       if (!owner || String(owner.id) !== String(me.id)) {
@@ -255,7 +255,7 @@ async function migrateExistingFolder(client, folderId, userId, userName, options
     });
     logger.log(`Renamed folder ${folder.id} to "${friendlyName}"`);
   } catch (renameErr) {
-    logger.warn(`Could not rename folder ${folder.id} — continuing anyway. Error: ${renameErr.message}`);
+    logger.warn(`Could not rename folder ${folder.id}, continuing anyway. Error: ${renameErr.message}`);
   }
 
   // 3. Re-fetch collaborations post-transfer (roles shifted) and remove
@@ -295,7 +295,7 @@ async function migrateExistingFolder(client, folderId, userId, userName, options
 
   } catch (migrationErr) {
     // A failure partway through (commonly Box's 409 operation_blocked_temporary
-    // on a large or recently-moved folder) does not mean nothing happened —
+    // on a large or recently-moved folder) does not mean nothing happened.
     // an earlier step in this same call, e.g. the move out of the parent
     // tree, can have already gone through. Re-check and report the real
     // state instead of leaving the caller to run a separate dry run to
@@ -311,7 +311,7 @@ async function migrateExistingFolder(client, folderId, userId, userName, options
     } catch (checkErr) {
       statusNote = `Could not re-check the folder's state after the error (${checkErr.message}). Run a dry run before retrying.`;
     }
-    migrationErr.message = `${migrationErr.message} — ${statusNote}`;
+    migrationErr.message = `${migrationErr.message}. ${statusNote}`;
     throw migrationErr;
   }
 
