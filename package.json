@@ -1,0 +1,14 @@
+{
+  "name": "box-folder-owner-migration",
+  "version": "1.0.0",
+  "description": "Transfers ownership of existing Box folders from a shared admin/service account to the real person they belong to, via the Box API.",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "box-node-sdk": "^4.13.0"
+  }
+}

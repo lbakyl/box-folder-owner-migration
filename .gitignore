@@ -1,0 +1,9 @@
+node_modules/
+local.settings.json
+output/
+*.csv
+.env
+*.log
+__azurite*
+__blobstorage__
+__queuestorage__
