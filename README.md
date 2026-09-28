@@ -7,12 +7,12 @@ Companion write-up with the full background (why this exists, what it looks
 like end to end): [How to Migrate Box Folder Ownership from a Service
 Account to Users Programmatically](https://bachelor-tech.com/how-to-migrate-box-folder-ownership-from-a-service-account-to-users-programmatically).
 This repo is the code; that post is the story. If you found this repo first,
-read the post too — it covers a couple of gotchas that aren't obvious from
+read the post too. It covers a couple of gotchas that aren't obvious from
 the code alone.
 
 If you're here for provisioning brand-new home folders for new users
-instead of migrating existing ones, that's a related but different problem
-— see my other post, [How to programmatically create home folders for new
+instead of migrating existing ones, that's a related but different problem.
+See my other post, [How to programmatically create home folders for new
 users on Box with Azure Functions](https://bachelor-tech.com/how-to-programmatically-create-home-folders-for-new-users-on-box-with-azure).
 
 ## The problem this solves
@@ -21,14 +21,14 @@ A common pattern in Box (and honestly in most cloud storage): someone sets
 up shared "home folders" for employees under one admin or service account,
 because that was the easiest way to bootstrap it. Years later, that admin
 account has standing access to every one of those folders, and untangling
-it looks scary — you can't just "change the owner" from the UI on hundreds
+it looks scary. You can't just "change the owner" from the UI on hundreds
 of folders one at a time, and getting it wrong on a large folder is not
 something you want to find out about after the fact.
 
 This tool does exactly one thing: given a folder ID and the Box user ID of
 the person it should belong to, it transfers ownership to them and removes
 every other standing collaborator (except anyone you explicitly say to
-keep). It's a metadata operation in Box, not a data operation — a 150 GB
+keep). It's a metadata operation in Box, not a data operation. A 150 GB
 folder transfers just as fast as an empty one, because nothing is actually
 copied.
 
@@ -39,7 +39,7 @@ It always dry-runs first. Nothing changes until you explicitly confirm.
 1. Read the folder's current owner and collaborator list.
 2. If any of that access comes from a *parent* folder rather than the
    folder itself (common if these folders sit inside a shared structure),
-   move the folder out to sever that inherited access — ownership transfer
+   move the folder out to sever that inherited access. Ownership transfer
    alone does not remove it, which is easy to miss.
 3. Add the target user as a collaborator if they aren't already one.
 4. Upgrade their collaboration to owner. Box transfers ownership and
@@ -54,22 +54,22 @@ to anything.
 ## 1. Prerequisites
 
 - **Node.js 22** and npm.
-- **Azure Functions Core Tools v4**: `npm install -g azure-functions-core-tools@4`
-  — this runs the tool locally as a real Azure Functions host (the same
+- **Azure Functions Core Tools v4**: `npm install -g azure-functions-core-tools@4`.
+  This runs the tool locally as a real Azure Functions host (the same
   runtime a deployed Function App uses), just on your own machine. Nothing
   here needs an actual Azure subscription; it never leaves localhost.
 - This project's dependencies:
   ```bash
   npm install
   ```
-- A `local.settings.json`, copied from `local.settings.json.example` as-is
-  — no values need to be filled in. This is only needed so the local
+- A `local.settings.json`, copied from `local.settings.json.example` as-is.
+  No values need to be filled in. This is only needed so the local
   Functions host has somewhere to start.
 
 ## 2. One-time Box setup
 
 The tool needs to act as the folder's *current owner*, because only a
-folder's current owner can hand it to someone else — not a co-owner, not an
+folder's current owner can hand it to someone else. Not a co-owner, not an
 admin with broader permissions, only the literal current owner. Confirmed
 directly against Box's API: attempting this as anything less returns a 403.
 
@@ -84,10 +84,11 @@ directly against Box's API: attempting this as anything less returns a 403.
    - Leave **Make API calls using the as-user header** and
      **Generate user access tokens** both **off**. Neither is needed here,
      and turning either on gives the app standing impersonation power over
-     every user in your enterprise — the opposite of what this tool is for.
+     every user in your enterprise, which is the opposite of what this
+     tool is for.
    - Under **Content Actions**, check "Read all files and folders" and
      "Write all files and folders".
-   - Under **Administrative Actions**, check **Manage Users** — needed for
+   - Under **Administrative Actions**, check **Manage Users**, needed for
      the storage-limit check and for looking up Box user IDs by email. Save.
 4. Have an enterprise admin authorize the app (Admin Console → Platform
    Apps), which the Manage Users scope requires.
@@ -101,12 +102,12 @@ node tools/boxLogin.js
 ```
 
 It asks for the Client ID and Client Secret the first time only, then
-prints a URL. Open it in a **private/incognito browser window** — not your
+prints a URL. Open it in a **private/incognito browser window** (not your
 normal profile, since it needs to be the folder owner's session, not
-yours — and sign in there, approving the app.
+yours), and sign in there, approving the app.
 
 The login is stored in `~/.box-migration` on your machine, never in this
-project folder. It refreshes itself automatically — a session stays usable
+project folder. It refreshes itself automatically; a session stays usable
 for up to 60 days after its last use. Run `node tools/boxLogin.js --logout`
 when you're done, and delete the app in the Developer Console.
 
@@ -118,8 +119,8 @@ when you're done, and delete the app in the Developer Console.
 func start
 ```
 
-Leave this running. Everything below talks to `http://localhost:7071` —
-client and server both run on your own machine.
+Leave this running. Everything below talks to `http://localhost:7071`.
+Client and server both run on your own machine.
 
 ### 3b. Find the folder ID and the target user's Box ID
 
@@ -139,11 +140,11 @@ node tools/lookupUsers.js someone@example.com
 ```
 
 If it reports "NOT FOUND (exact login), but the search returned:" followed
-by a list, the email you tried isn't that person's actual Box login — some
+by a list, the email you tried isn't that person's actual Box login. Some
 accounts (especially older ones) can have a different login than their
 real email. Check the returned list for their name.
 
-### 3c. Dry run — always do this first
+### 3c. Dry run: always do this first
 
 ```bash
 curl -X POST http://localhost:7071/api/migrateHomeFolder \
@@ -159,7 +160,7 @@ With no `confirm`, this changes nothing. It reports:
 | `storageCheck` | Whether the target user's storage limit can hold this folder. A confirmed run refuses to proceed if it can't. |
 | `wouldRemove` | Direct collaborators that would lose access. Removal is the default. |
 | `wouldKeep` / `wouldAddDirect` | Anyone explicitly kept via `keepCollaboratorIds`. |
-| `inheritedCollaborators` | People who have access only because they collaborate on a *parent* folder, not this one directly. Never touched directly — see `wouldMoveOutOfTree` below. |
+| `inheritedCollaborators` | People who have access only because they collaborate on a *parent* folder, not this one directly. Never touched directly; see `wouldMoveOutOfTree` below. |
 | `wouldMoveOutOfTree` | Whether the folder needs to be relocated first to actually sever inherited access. |
 
 ### 3d. The real run
@@ -184,7 +185,7 @@ curl -X POST http://localhost:7071/api/migrateHomeFolder \
 ### 3e. Verify
 
 Run the exact same dry-run request from 3c again. A `404 "not_found"`
-response means the old owner can no longer see the folder at all — that's
+response means the old owner can no longer see the folder at all. That's
 success, not an error, because that account genuinely has no more access
 to check.
 
@@ -197,8 +198,8 @@ to check.
 - **`409 operation_blocked_temporary`** on the confirm step: Box is still
   finishing background work on this folder, or on a sibling folder migrated
   moments earlier from the same parent structure. **This does not mean
-  nothing happened.** An earlier step in the same request — commonly, the
-  move out of the parent tree — can have already succeeded even though the
+  nothing happened.** An earlier step in the same request (commonly, the
+  move out of the parent tree) can have already succeeded even though the
   overall request errored. The error message tells you the folder's actual
   current state, so read it before retrying. Retrying the same request
   (still with `confirm`) picks up from wherever it actually left off; it
@@ -210,7 +211,7 @@ to check.
   inherited from parent folders mixed in with access set directly on the
   folder. An inherited entry's `item` field names the *ancestor* it was
   created on, not the folder you asked about. Upgrading or deleting one by
-  mistake changes the whole parent tree — every other folder under it, not
+  mistake changes the whole parent tree: every other folder under it, not
   just the one you meant. This script only ever touches collaborations
   whose `item` is the exact folder being migrated, and double-checks that
   by ID immediately before every change, straight from Box, rather than
@@ -221,4 +222,4 @@ to check.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
